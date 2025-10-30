@@ -1,5 +1,5 @@
 # Backend API
-This is where the code for LLM processing, data extraction, and database interaction lives.
+#This is where the code for LLM processing, data extraction, and database interaction lives.
 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
