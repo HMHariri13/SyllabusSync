@@ -43,20 +43,31 @@ async def upload_syllabus(file: UploadFile = File(...)):
     The syllabus text is below.
     Please output a JSON with this structure:
 
-    {{
-      "exams": [
-        {{"name": "Midterm", "date": "2025-03-12"}}
+    {
+      "course": {
+        "code": "string",
+        "title": "string",
+        "term": "string",
+        "instructor": "string|null",
+        "meeting": "string|null"
+      },
+      "tasks": [
+        {
+          "type": "HOMEWORK|PROJECT|EXAM|QUIZ|READING|OTHER",
+          "title": "string",
+          "dueAt": "YYYY-MM-DDTHH:mm:ssZ|null",
+          "window": {"start":"YYYY-MM-DDTHH:mm:ssZ|null","end":"YYYY-MM-DDTHH:mm:ssZ|null"},
+          "points": "number|null",
+          "weightPct": "number|null",
+          "description": "string|null",
+          "sourceText": "string"       // short quote for traceability
+        }
       ],
-      "homework": [
-        {{"title": "Homework 1", "due_date": "2025-02-14"}}
-      ],
-      "projects": [
-        {{"name": "Final Project", "due_date": "2025-05-05"}}
-      ],
-      "other_tasks": [
-        {{"task": "Reading Quiz 3", "date": "2025-03-20"}}
+      "topics": [
+        {"week": "number|null", "title": "string", "readings": ["string"]}
       ]
-    }}
+    }
+
 
     Syllabus text:
     {text[:12000]}  # limit to avoid token overload
