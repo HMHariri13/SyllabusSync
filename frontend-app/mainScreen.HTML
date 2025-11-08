@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyllabusSync Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        /* Base Styles & Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f4f8; 
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Main app container */
+        .app-container {
+            max-width: 420px; 
+            margin: 0 auto;
+            min-height: 100%;
+            background-color: #fff; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05); 
+            position: relative;
+            overflow: hidden; 
+            padding-bottom: 20px; 
+        }
+
+        /* Top Header Section */
+        .header {
+            background-color: #5bb2ec; 
+            position: relative;
+            height: 180px; 
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            color: white;
+            padding-top: 40px; 
+        }
+
+        .header .wave-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        .header .wave-bg svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1; 
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .header-text {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .header-text span {
+            display: block;
+            font-size: 20px;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .header-indicator {
+            width: 30px;
+            height: 30px;
+            background-color: white;
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 0 0 5px rgba(255,255,255,0.2);
+        }
+        .header-indicator::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+
+        /* Calendar Card */
+        .calendar-card {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            margin: -80px 20px 20px 20px; 
+            padding: 20px;
+            position: relative;
+            z-index: 2; 
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header .bi-weekly-dropdown {
+            padding: 10px 20px; 
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: #f7f7f7;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            -webkit-appearance: none; 
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M7 10l5 5 5-5z"/></svg>'); 
+            background-repeat: no-repeat;
+            background-position: right 10px center; 
+            background-size: 16px;
+            cursor: pointer;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 15px 5px; 
+            text-align: center;
+        }
+
+        .calendar-day {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 14px;
+            color: #777;
+            position: relative;
+        }
+
+        .calendar-day .date-num {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .calendar-day.selected {
+            background-color: #ffe6e6; 
+            border-radius: 10px;
+            padding: 5px 0;
+            color: #ff5252;
+            font-weight: 600;
+        }
+
+        .calendar-day.selected .date-num {
+            color: #ff5252;
+        }
+
+        .calendar-day.selected::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; 
+            width: 6px;
+            height: 6px;
+            background-color: #ff5252;
+            border-radius: 50%;
+        }
+
+
+        /* Schedule Tabs */
+        .schedule-tabs {
+            display: flex;
+            margin: 20px 20px 25px 20px; /* Reduced top margin */
+            background-color: #f0f4f8;
+            border-radius: 12px;
+            padding: 5px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #777;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: #007bff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Schedule Timeline */
+        .schedule-today {
+            padding: 0 20px;
+            margin-top: 30px;
+        }
+        
+        /* General Section Title */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0px; /* Adjusted margin */
+            padding: 0 20px; /* Aligns with content */
+        }
+        
+        /* Title specifically for schedule section */
+        .schedule-title {
+            margin-top: 30px;
+            margin-bottom: -5px; /* Pulls tabs closer */
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 70px 1fr; 
+            gap: 25px 15px; 
+            align-items: flex-start; 
+            position: relative; 
+        }
+
+        .schedule-grid::before {
+            content: '';
+            position: absolute;
+            left: 70px; 
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background-color: #f0f4f8; 
+            z-index: 0;
+        }
+
+        .schedule-time {
+            font-size: 14px;
+            color: #888;
+            font-weight: 600;
+            line-height: 1.2; 
+            padding-top: 2px;
+            text-align: right; 
+            position: relative;
+            z-index: 1;
+        }
+
+        .schedule-time::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background-color: #f0f4f8; 
+            border: 2px solid #fff; 
+            border-radius: 50%;
+            position: absolute;
+            right: -24px; 
+            top: 5px;
+            z-index: 1;
+        }
+
+        .schedule-time.has-event::after {
+            background-color: #ff7f7f;
+            border-color: #ff7f7f;
+        }
+
+
+        .schedule-event-card {
+            background-color: #ff8585; 
+            color: white;
+            padding: 12px 15px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(255, 133, 133, 0.3);
+        }
+
+        .schedule-event-card span {
+            display: block;
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        /* Upcoming Assignments Section */
+        .upcoming-assignments {
+            padding: 0 20px;
+            margin-top: 40px;
+        }
+        
+        .upcoming-assignments .section-title {
+            padding: 0; /* Reset padding for this specific title */
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 25px;
+        }
+        
+        .assignment-card {
+            background-color: #fce883; 
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(240, 220, 130, 0.4); 
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .assignment-icon {
+            width: 45px;
+            height: 45px;
+            background-color: #fadf5e; 
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #b98b00; 
+        }
+
+        .assignment-details {
+            flex-grow: 1;
+        }
+
+        .assignment-details .title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #5d4900; 
+            margin-bottom: 3px;
+        }
+
+        .assignment-details .due-time {
+            font-size: 13px;
+            color: #7a6300; 
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+
+        /* Add Syllabus Button */
+        .add-syllabus-button {
+            width: calc(100% - 40px); 
+            margin: 40px auto 0 auto; 
+            display: block; 
+            padding: 15px 20px;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #4dc0d7 0%, #007bff 100%); 
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .add-syllabus-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        
+        <div class="header">
+            <div class="wave-bg">
+                <svg viewBox="0 0 1440 320" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="blueWaveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#007bff; stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4dc0d7; stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#blueWaveGradient)" fill-opacity="1" d="M0,96L80,117.3C160,139,320,181,480,181.3C640,181,800,139,960,122.7C1120,107,1280,117,1360,122.7L1440,128L1440,0L1360,0C1280,0,1120,0,960,0C800,0,640,0,480,0C320,0,160,0,80,0L0,0Z"></path>
+                </svg>
+            </div>
+            <div class="header-content">
+                <div class="header-text">
+                    Good Morning,<br><span>John Doe</span>
+                </div>
+                <div class="header-indicator"></div>
+            </div>
+        </div>
+
+        
+        <div class="calendar-card">
+            <div class="calendar-header">
+                <select class="bi-weekly-dropdown">
+                    <option>Bi-weekly</option>
+                    <option>Weekly</option>
+                    <option>Monthly</option>
+                </select>
+                
+            </div>
+            <div class="calendar-grid">
+                <div class="calendar-day">
+                    <span class="date-num">13</span>
+                    <span>Mo</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">14</span>
+                    <span>Tu</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">15</span>
+                    <span>Wed</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">16</span>
+                    <span>Th</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">17</span>
+                    <span>Fr</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">18</span>
+                    <span>Sa</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">19</span>
+                    <span>Su</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">20</span>
+                    <span>Mo</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">21</span>
+                    <span>Tu</span>
+                </div>
+                <div class="calendar-day selected">
+                    <span class="date-num">22</span>
+                    <span>Wed</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">23</span>
+                    <span>Th</span>
+                </div>
+                <div class="calendar-day">
+                <span class="date-num">24</span>
+                    <span>Fr</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">25</span>
+                    <span>Sa</span>
+                </div>
+                <div class="calendar-day">
+                    <span class="date-num">26</span>
+                    <span>Su</span>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="schedule-today">
+            <h3 class="section-title schedule-title">Schedule Today</h3>
+            
+            <div class="schedule-tabs">
+                <button class="tab-btn active">Today</button>
+                <button class="tab-btn">This Week</button>
+                <button class="tab-btn">Month</button>
+            </div>
+            
+            <div class="schedule-grid">
+                
+                <div class="schedule-time">08:00 AM</div>
+                <div></div> 
+                <div class="schedule-time">09:00 AM</div>
+                <div></div> 
+                
+                <div class="schedule-time has-event">10:00 AM</div>
+                <div class="schedule-event-card" style="background-color: #ff7f7f; box-shadow: 0 4px 10px rgba(255, 127, 127, 0.3);">
+                    Data Structures<span>Every Wednesday</span>
+                </div>
+
+                <div class="schedule-time">11:00 AM</div>
+                <div></div> 
+                
+                <div class="schedule-time">12:00 PM</div>
+                <div></div> 
+                <div class="schedule-time">01:00 PM</div>
+                <div></div>
+                
+                <div class="schedule-time has-event">02:00 PM</div>
+                <div class="schedule-event-card" style="background-color: #ff7f7f; box-shadow: 0 4px 10px rgba(255, 127, 127, 0.3);">
+                    Probability and Stats<span>Every Wednesday</span>
+                </div>
+
+                <div class="schedule-time">03:00 PM</div>
+                <div></div> 
+                
+                <div class="schedule-time">04:00 PM</div>
+                <div></div> 
+            </div>
+        </div>
+
+        
+        <div class="upcoming-assignments">
+            <h3 class="section-title">Upcoming Assignments</h3>
+            <p class="section-subtitle">Don't forget your assignments due tomorrow</p>
+
+            <div class="assignment-card">
+                <div class="assignment-icon">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <div class="assignment-details">
+                    <div class="title">Project 2 - DSA</div>
+                    <div class="due-time"><i class="fa-regular fa-clock"></i> 11:59 pm</div>
+                </div>
+            </div>
+
+            <div class="assignment-card">
+                <div class="assignment-icon">
+                    <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <div class="assignment-details">
+                    <div class="title">Homework 7 - P&S</div>
+                    <div class="due-time"><i class="fa-regular fa-clock"></i> 1:00 pm</div>
+                </div>
+            </div>
+        </div>
+
+        
+        <button class="add-syllabus-button">Add Syllabus</button>
+
+    </div>
+</body>
+</html>
