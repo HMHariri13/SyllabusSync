@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyllabusSync Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <style>
+        /* Basic reset and font setup */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Prevents scrolling */
+        }
+
+        /* Background gradient */
+        body {
+            background: linear-gradient(160deg, #dff9f6 0%, #fffded 100%);
+        }
+
+        /* SVG Wave Background */
+        .background-wave {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: -1; /* Place it behind everything */
+        }
+
+        /* Main container for the login form */
+        .login-container {
+            width: 100%;
+            max-width: 380px;
+            padding: 30px; 
+            z-index: 1; 
+
+            background: rgba(255, 255, 255, 0.5); 
+            border-radius: 16px; 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.5); 
+        }
+
+        /* "SyllabusSync" Title */
+        .login-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #0052cc;
+            text-align: center;
+            margin-bottom: 10px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        /* Style for the icon in the title (updated to target any <i>) */
+        .login-title i {
+            font-size: 0.8em; 
+            margin-right: 8px; 
+            color: #007bff; 
+        }
+
+        /* "Login" Heading */
+        .login-subtitle {
+            font-size: 32px;
+            font-weight: 700;
+            color: #000000;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Styling for each form group (icon + label + input) */
+        .input-group {
+            position: relative;
+            margin-bottom: 40px; 
+        }
+
+        /* Style for the icon and label text */
+        .input-label {
+            display: flex;
+            align-items: center;
+            color: #0052cc;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .input-label i {
+            margin-right: 10px; 
+            width: 20px; 
+            text-align: center;
+        }
+
+        /* The actual text/password input field */
+        .input-field {
+            width: 100%;
+            border: none;
+            border-bottom: 2px solid #b0b0b0;
+            background: transparent; 
+            padding: 8px 0;
+            font-size: 16px;
+            outline: none; 
+            transition: border-color 0.3s;
+            color: #333; 
+        }
+
+        .input-field:focus {
+            border-bottom-color: #0052cc; 
+        }
+
+        /* The "show/hide" password icon */
+        .toggle-password {
+            position: absolute;
+            right: 5px;
+            top: 38px; 
+            color: #007bff;
+            cursor: pointer;
+        }
+
+        /* Row for "Remember me" and "Forgot password" */
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px; 
+            font-size: 14px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            color: #555;
+        }
+
+        .remember-me input {
+            margin-right: 5px;
+            accent-color: #007bff; 
+        }
+
+        .forgot-link {
+            color: #007bff; 
+            text-decoration: none;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        /* The main "LOGIN" button */
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007bff; 
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 25px;
+            transition: background-color 0.3s;
+        }
+
+        .login-button:hover {
+            background-color: #0056b3; 
+        }
+
+        /* The "Don't have an account? Sign Up" text */
+        .signup-link {
+            text-align: center;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .signup-link a {
+            color: #007bff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="background-wave">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+            <defs>
+                <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#0052cc; stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#1abc9c; stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <path fill="url(#waveGradient)" fill-opacity="1" d="M0,96L80,117.3C160,139,320,181,480,181.3C640,181,800,139,960,122.7C1120,107,1280,117,1360,122.7L1440,128L1440,0L1360,0C1280,0,1120,0,960,0C800,0,640,0,480,0C320,0,160,0,80,0L0,0Z"></path>
+        </svg>
+    </div>
+
+    <div class="login-container">
+        
+        <h1 class="login-title">
+            <i class="fa-solid fa-list-check"></i> SyllabusSync
+        </h1>
+        <h2 class="login-subtitle">Login</h2>
+
+        <form action="#" method="post">
+            
+            <div class="input-group">
+                <div class="input-label">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>Email</span>
+                </div>
+                <input type="email" class="input-field" required>
+            </div>
+
+            <div class="input-group">
+                <div class="input-label">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Password</span>
+                </div>
+                <input type="password" class="input-field" id="password" required>
+                <i class="fa-solid fa-eye-slash toggle-password" id="toggle-pass-icon"></i>
+            </div>
+
+            <div class="options-row">
+                <label class="remember-me">
+                    <input type="checkbox" name="remember">
+                    Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-button">LOGIN</button>
+
+            <div class="signup-link">
+                Don't have an account? <a href="#">Sign Up</a>
+            </div>
+
+        </form>
+    </div>
+
+</body>
+</html>
