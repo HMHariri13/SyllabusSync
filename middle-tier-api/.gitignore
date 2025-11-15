@@ -214,5 +214,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ignore env files
 #application.env
 app/application.env
+.env
+*.env
+application.env
