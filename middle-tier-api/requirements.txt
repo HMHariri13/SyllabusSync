@@ -3,3 +3,5 @@ uvicorn[standard]
 httpx
 PyPDF2
 python-docx
+pdfplumber
+openai
