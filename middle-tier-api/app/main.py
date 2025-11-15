@@ -55,7 +55,67 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"File encoding error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
-    
-    
+
+  #Build prompt for OpenAI
+    prompt = f"""
+    You are a helpful assistant that extracts academic deadlines from a syllabus.
+    The syllabus text is below.
+    Please output a JSON with this structure:
+
+    {
+      "course": {
+        "code": "string",
+        "title": "string",
+        "term": "string",
+        "instructor": "string|null",
+        "meeting": "string|null"
+      },
+      "tasks": [
+        {
+          "type": "HOMEWORK|PROJECT|EXAM|QUIZ|READING|OTHER",
+          "title": "string",
+          "dueAt": "YYYY-MM-DDTHH:mm:ssZ|null",
+          "window": {"start":"YYYY-MM-DDTHH:mm:ssZ|null","end":"YYYY-MM-DDTHH:mm:ssZ|null"},
+          "points": "number|null",
+          "weightPct": "number|null",
+          "description": "string|null",
+          "sourceText": "string"       // short quote for traceability
+        }
+      ],
+      "topics": [
+        {"week": "number|null", "title": "string", "readings": ["string"]}
+      ]
+    }
+
+
+    Syllabus text:
+    {raw_text[:12000]}  # limit to avoid token overload
+    """
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    #Send to OpenAI for structured extraction
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # you can change to gpt-4.1 or gpt-4o
+            messages=[
+                {"role": "system", "content": "You extract structured academic deadlines from text."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+        )
+        result = response.choices[0].message.content
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"OpenAI API request failed: {e}"},
+            status_code=500
+        )
+
+    #Return structured JSON
+    return JSONResponse({"structured_data": result})
+
+
+
+
+
+
 
     
