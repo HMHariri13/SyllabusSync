@@ -4,6 +4,11 @@ import PyPDF2 # Example library for PDF text extraction
 from PyPDF2.errors import PdfReadError
 import io
 from docx import Document
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import JSONResponse
+import pdfplumber
+from openai import OpenAI
+import os
 
 
 app = FastAPI(
@@ -21,7 +26,7 @@ async def create_upload_file(file: UploadFile = File(...)):
     """
     1. Receives a syllabus file from the Frontend.
     2. Extracts the raw text.
-    3. Sends the raw text to the Middle Tier (AI Layer) for processing.
+    3. Sends the raw text to API for processing.
     """
     
     # Receive File and Extract Text 
@@ -51,4 +56,6 @@ async def create_upload_file(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
     
+    
+
     
