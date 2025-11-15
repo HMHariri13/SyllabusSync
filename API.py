@@ -7,12 +7,12 @@ import pdfplumber
 from openai import OpenAI
 import os
 
+
 #Initializing app
 app = FastAPI(title="Syllabus Deadline Extractor API")
 
 #Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))  # <-- set your API key in environment
-
 
 @app.post("/upload")
 async def upload_syllabus(file: UploadFile = File(...)):
@@ -67,7 +67,6 @@ async def upload_syllabus(file: UploadFile = File(...)):
         {"week": "number|null", "title": "string", "readings": ["string"]}
       ]
     }
-
 
     Syllabus text:
     {text[:12000]}  # limit to avoid token overload

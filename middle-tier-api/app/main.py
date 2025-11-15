@@ -13,7 +13,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
 # URL for your Middle Tier (AI Layer) service
 AI_LAYER_URL = "http://your-middle-tier-service-address/extract-from-syllabus"
 
@@ -51,8 +50,5 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"File encoding error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
-    
-    
-
     
     
