@@ -55,8 +55,9 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"File encoding error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
+    
 
-  #Build prompt for OpenAI
+      #Build prompt for OpenAI
     prompt = f"""
     You are a helpful assistant that extracts academic deadlines from a syllabus.
     The syllabus text is below.
@@ -111,10 +112,6 @@ async def create_upload_file(file: UploadFile = File(...)):
 
     #Return structured JSON
     return JSONResponse({"structured_data": result})
-
-
-
-
 
 
 
