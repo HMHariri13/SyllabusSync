@@ -1,5 +1,6 @@
 fastapi[standard]
 uvicorn[standard]
+python-dotenv
 httpx
 PyPDF2
 python-docx

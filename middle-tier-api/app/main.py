@@ -8,8 +8,10 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
+from dotenv import load_dotenv
 import os
 
+load_dotenv()  # <--- this will load app/.env
 
 app = FastAPI(
     title="AI Student Advisor - Middle Tier",
@@ -57,37 +59,46 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
     
 
-      #Build prompt for OpenAI
-    prompt = f"""
-    You are a helpful assistant that extracts academic deadlines from a syllabus.
-    The syllabus text is below.
-    Please output a JSON with this structure:
-
+    #Build prompt for OpenAI
+    schema_description = """
     {
-      "course": {
+    "course": {
         "code": "string",
         "title": "string",
         "term": "string",
         "instructor": "string|null",
         "meeting": "string|null"
-      },
-      "tasks": [
+    },
+    "tasks": [
         {
-          "type": "HOMEWORK|PROJECT|EXAM|QUIZ|READING|OTHER",
-          "title": "string",
-          "dueAt": "YYYY-MM-DDTHH:mm:ssZ|null",
-          "window": {"start":"YYYY-MM-DDTHH:mm:ssZ|null","end":"YYYY-MM-DDTHH:mm:ssZ|null"},
-          "points": "number|null",
-          "weightPct": "number|null",
-          "description": "string|null",
-          "sourceText": "string"       // short quote for traceability
+            "type": "HOMEWORK|PROJECT|EXAM|QUIZ|READING|OTHER",
+            "title": "string",
+            "dueAt": "YYYY-MM-DDTHH:mm:ssZ|null",
+            "window": {
+                "start": "YYYY-MM-DDTHH:mm:ssZ|null",
+                "end": "YYYY-MM-DDTHH:mm:ssZ|null"
+            },
+            "points": "number|null",
+            "weightPct": "number|null",
+            "description": "string|null",
+            "sourceText": "string"
         }
-      ],
-      "topics": [
-        {"week": "number|null", "title": "string", "readings": ["string"]}
-      ]
+     ],
+    "topics": [
+        {
+            "week": "number|null",
+            "title": "string",
+            "readings": "string|null"
+        }
+     ]
     }
+"""
+    prompt = f"""
+    You are a helpful assistant that extracts academic deadlines from a syllabus.
+    The syllabus text is below.
+    Please output a JSON with this structure:
 
+    {schema_description}
 
     Syllabus text:
     {raw_text[:12000]}  # limit to avoid token overload
