@@ -9,6 +9,9 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 app = FastAPI(
@@ -58,7 +61,7 @@ async def create_upload_file(file: UploadFile = File(...)):
     
 
       #Build prompt for OpenAI
-    prompt = f"""
+    prompt = """
     You are a helpful assistant that extracts academic deadlines from a syllabus.
     The syllabus text is below.
     Please output a JSON with this structure:
@@ -80,18 +83,16 @@ async def create_upload_file(file: UploadFile = File(...)):
           "points": "number|null",
           "weightPct": "number|null",
           "description": "string|null",
-          "sourceText": "string"       // short quote for traceability
+          "sourceText": "string"
         }
       ],
       "topics": [
         {"week": "number|null", "title": "string", "readings": ["string"]}
       ]
     }
-
-
     Syllabus text:
-    {raw_text[:12000]}  # limit to avoid token overload
-    """
+    """ + f"\n{raw_text[:12000]}" # limit to avoid token overload
+
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     #Send to OpenAI for structured extraction
     try:
