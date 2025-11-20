@@ -10,6 +10,10 @@ import pdfplumber
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+from .database import syllabi_collection
+from .models import SyllabusCreate, Syllabus
+from datetime import datetime
+from bson import ObjectId
 
 load_dotenv()  # <--- this will load app/.env
 
@@ -23,6 +27,7 @@ app = FastAPI(
 # URL for your Middle Tier (AI Layer) service
 AI_LAYER_URL = "http://your-middle-tier-service-address/extract-from-syllabus"
 
+# Syllabus upload and extraction endpoints
 @app.post("/upload-syllabus/")
 async def create_upload_file(file: UploadFile = File(...)):
     """
@@ -47,7 +52,6 @@ async def create_upload_file(file: UploadFile = File(...)):
         else:
             # Assume plain text for other file types for this example will end in error
             raw_text = contents.decode('utf-8')
-        
 
         if not raw_text:
             raise HTTPException(status_code=400, detail="Could not extract text from file.")
@@ -57,9 +61,8 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"File encoding error: {e}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
-    
 
-    #Build prompt for OpenAI
+    # Build prompt for OpenAI
     schema_description = """
     {
     "course": {
@@ -125,5 +128,36 @@ async def create_upload_file(file: UploadFile = File(...)):
     return JSONResponse({"structured_data": result})
 
 
+# MongoDb endpoints
+@app.post("/syllabi", response_model=Syllabus)
+def create_syllabus_entry(syllabus: SyllabusCreate):
+    # 1. Convert Pydantic model
+    doc = syllabus.model_dump()
 
-    
+    # 2. Add timestamp variable
+    uploadedAt = datetime.utcnow()
+    doc["uploadedAt"] = uploadedAt
+
+# 3. Insert into MongoDB
+    result = syllabi_collection.insert_one(doc)
+
+    # doc["id"] = str(result.inserted_id)
+    return Syllabus (
+        id = str(result.inserted_id),
+        **doc,  # user_id / userId, course_name, term, raw_text
+    )
+
+
+@app.get("/syllabi/{syllabus_id}", response_model=Syllabus)
+def get_syllabus_entry(syllabus_id: str):
+    try:
+        oid = ObjectId(syllabus_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid syllabus id format")
+
+    doc = syllabi_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+
+    doc["_id"] = str(doc["_id"])
+    return Syllabus(**doc)
