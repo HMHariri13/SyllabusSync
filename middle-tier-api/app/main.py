@@ -9,6 +9,10 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
+from .database import syllabi_collection
+from .models import SyllabusCreate, Syllabus
+from datetime import datetime
+from bson import ObjectId
 from dotenv import load_dotenv
 import json
 import re
@@ -135,3 +139,35 @@ async def create_upload_file(file: UploadFile = File(...)):
     #Return structured JSON
     #return JSONResponse({"structured_data": result})
     #return structured_data
+
+@app.post("/syllabi", response_model=Syllabus)
+def create_syllabus_entry(syllabus: SyllabusCreate):
+    # 1. Convert Pydantic model -> dict
+    doc = syllabus.model_dump()  # {'userId', 'courseName', 'term', 'rawText'}
+
+    # 2. Add timestamp
+    uploadedAt = datetime.utcnow()
+    doc["uploadedAt"] = uploadedAt
+
+    # 3. Insert into MongoDB
+    result = syllabi_collection.insert_one(doc)
+
+    # 4. Build Syllabus response
+    return Syllabus(
+        id=str(result.inserted_id),
+        **doc,            # includes uploadedAt, userId, courseName, term, rawText
+    )
+
+@app.get("/syllabi/{syllabus_id}", response_model=Syllabus)
+def get_syllabus_entry(syllabus_id: str):
+    try:
+        oid = ObjectId(syllabus_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid syllabus id format")
+
+    doc = syllabi_collection.find_one({"_id": oid})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+
+    doc["_id"] = str(doc["_id"])
+    return Syllabus(**doc)
