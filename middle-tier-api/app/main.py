@@ -10,6 +10,8 @@ import pdfplumber
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import json
+import re
 
 load_dotenv()
 
@@ -20,6 +22,22 @@ app = FastAPI(
     "Connecting System",
     version="1.0.0"
 )
+
+def clean_llm_json_response(raw: str) -> dict:
+    """
+    Cleans LLM response and returns a parsed JSON object (dict).
+    """
+    # Remove ```json ... ``` fences
+    raw = re.sub(r"```json", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"```", "", raw)
+    raw = raw.strip()
+    
+    # Parse into a Python dictionary
+    try:
+        data_dict = json.loads(raw)
+        return data_dict
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to parse LLM response as JSON: {e}")
 
 # URL for your Middle Tier (AI Layer) service
 AI_LAYER_URL = "http://your-middle-tier-service-address/extract-from-syllabus"
@@ -103,17 +121,17 @@ async def create_upload_file(file: UploadFile = File(...)):
                 {"role": "user", "content": prompt},
             ],
             temperature=0.2,
+            response_format={"type": "json_object"} 
         )
-        result = response.choices[0].message.content
+        result = response.choices[0].message.content or ""
+        structured_data = clean_llm_json_response(result)
+        return structured_data
     except Exception as e:
         return JSONResponse(
             {"error": f"OpenAI API request failed: {e}"},
             status_code=500
         )
-
+        #structured_data = clean_llm_json_response(result)
     #Return structured JSON
-    return JSONResponse({"structured_data": result})
-
-
-
-    
+    #return JSONResponse({"structured_data": result})
+    #return structured_data
