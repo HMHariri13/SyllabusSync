@@ -549,4 +549,17 @@
 
     </div>
 </body>
+<script>
+    let res = fetch("http://localhost:5000/getUserData", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(response => response.json());
+
+    res.then(data => {
+        console.log(data);
+    });
+</script>
+
 </html>

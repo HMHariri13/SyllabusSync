@@ -9,13 +9,15 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
-from .database import syllabi_collection
-from .models import SyllabusCreate, Syllabus
+from database import syllabi_collection
+from models import SyllabusCreate, Syllabus
 from datetime import datetime
 from bson import ObjectId
 from dotenv import load_dotenv
 import json
 import re
+from fastapi.middleware.cors import CORSMiddleware #for handling frontend and backend connection
+
 
 load_dotenv()
 
@@ -25,6 +27,15 @@ app = FastAPI(
     description="Handles PDF uploads, LLM processing, and data management. \n" \
     "Connecting System",
     version="1.0.0"
+)
+
+#Frontend to backend connection handling
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 def clean_llm_json_response(raw: str) -> dict:
