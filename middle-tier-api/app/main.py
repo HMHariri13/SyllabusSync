@@ -30,6 +30,7 @@ app = FastAPI(
 )
 
 #Frontend to backend connection handling
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
