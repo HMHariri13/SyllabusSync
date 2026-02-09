@@ -6,6 +6,7 @@ from typing import Optional, List
 # User Models
 class UserBase(BaseModel):
     """Base user model with required fields for creation"""
+    id : int
     name: str
     email: EmailStr
     passwordHash: str
@@ -29,6 +30,7 @@ class User(UserBase):
 class SyllabusBase(BaseModel):
     """Base syllabus model with required fields for creation"""
     userId: int
+    courseCode: str
     courseName: str
     term: str
     rawText: str
@@ -48,9 +50,9 @@ class Syllabus(SyllabusBase):
         from_attributes = True
 
 
-# Deadline Models
-class DeadlineBase(BaseModel):
-    """Base deadline model with required fields for creation"""
+# Tasks Models
+class TasksBase(BaseModel):
+    """Base tasks model with required fields for creation"""
     syllabusId: int
     taskType: str
     taskName: str
@@ -59,13 +61,13 @@ class DeadlineBase(BaseModel):
     notes: Optional[str] = None
 
 
-class DeadlineCreate(DeadlineBase):
-    """Model for creating a new deadline"""
+class TasksCreate(TasksBase):
+    """Model for creating a new task"""
     pass
 
 
-class Deadline(DeadlineBase):
-    """Full deadline model with all fields including id"""
+class Tasks(TasksBase):
+    """Full tasks model with all fields including id"""
     id: Optional[int] = None
 
     class Config:
