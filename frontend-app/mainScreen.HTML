@@ -376,10 +376,13 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+
+
         .add-syllabus-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0, 123, 255, 0.4);
         }
+
     </style>
 </head>
 <body>
@@ -548,5 +551,56 @@
         <button class="add-syllabus-button">Add Syllabus</button>
 
     </div>
+    <script>
+async function loadCalendarEvents() {
+    const res = await fetch("http://localhost:8000/calendar/events");
+    const events = await res.json();
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Highlight days with events
+    document.querySelectorAll(".calendar-day").forEach(day => {
+        const dateNum = day.querySelector(".date-num")?.innerText;
+        if (!dateNum) return;
+
+        const dateStr = `2026-01-${dateNum.padStart(2, "0")}`;
+
+        if (events.some(e => e.start.startsWith(dateStr))) {
+            day.classList.add("selected");
+        }
+    });
+
+    // Populate Upcoming Assignments
+    const upcoming = document.querySelector(".upcoming-assignments");
+    upcoming.querySelectorAll(".assignment-card").forEach(e => e.remove());
+
+    events
+        .filter(e => e.start >= today)
+        .slice(0, 3)
+        .forEach(event => {
+            const time = new Date(event.start).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            upcoming.insertAdjacentHTML("beforeend", `
+                <div class="assignment-card">
+                    <div class="assignment-icon">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div class="assignment-details">
+                        <div class="title">${event.title}</div>
+                        <div class="due-time">
+                            <i class="fa-regular fa-clock"></i> ${time}
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+}
+
+loadCalendarEvents();
+</script>
+
 </body>
 </html>

@@ -4,7 +4,6 @@ import PyPDF2 # Example library for PDF text extraction
 from PyPDF2.errors import PdfReadError
 import io
 from docx import Document
-from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
@@ -19,6 +18,33 @@ import re
 
 load_dotenv()
 
+#Temporary in-memory store (replace with DB later)
+CALENDAR_EVENTS = []
+
+@app.post("/calendar/import")
+async def import_events(structured_data: dict):
+    """
+    Accepts structured syllabus JSON and converts tasks into calendar events
+    """
+    events = []
+
+    for task in structured_data.get("tasks", []):
+        if task.get("dueAt"):
+            events.append({
+                "title": task["title"],
+                "type": task["type"],
+                "start": task["dueAt"],
+                "description": task.get("description"),
+            })
+
+    CALENDAR_EVENTS.extend(events)
+    return {"added": len(events)}
+
+
+@app.get("/calendar/events")
+async def get_calendar_events():
+    return CALENDAR_EVENTS
+#----------------------------------------------------------------------------
 
 app = FastAPI(
     title="AI Student Advisor - Middle Tier",
@@ -46,6 +72,9 @@ def clean_llm_json_response(raw: str) -> dict:
 # URL for your Middle Tier (AI Layer) service
 AI_LAYER_URL = "http://your-middle-tier-service-address/extract-from-syllabus"
 
+# -----------------------------
+# Upload endpoint
+# -----------------------------
 @app.post("/upload-syllabus/")
 async def create_upload_file(file: UploadFile = File(...)):
     """
@@ -54,11 +83,18 @@ async def create_upload_file(file: UploadFile = File(...)):
     3. Sends the raw text to API for processing.
     """
     
+    # Read file contents into memory 
+    contents = await file.read()
+
+    # -----------------------------
+    # File size limit (5 MB)
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large (limit 5MB).")
+    # -----------------------------
+
     # Receive File and Extract Text 
     try:
-        # Read file contents into memory 
-        contents = await file.read()
-        
         raw_text = ""
         if file.content_type == "application/pdf":
             pdf_reader = PyPDF2.PdfReader(io.BytesIO(contents))
@@ -68,10 +104,9 @@ async def create_upload_file(file: UploadFile = File(...)):
             doc = Document(io.BytesIO(contents))
             raw_text = "\n".join([p.text for p in doc.paragraphs])
         else:
-            # Assume plain text for other file types for this example will end in error
+            # Assume plain text for other file types
             raw_text = contents.decode('utf-8')
         
-
         if not raw_text:
             raise HTTPException(status_code=400, detail="Could not extract text from file.")
     except PdfReadError as e:
@@ -116,7 +151,8 @@ async def create_upload_file(file: UploadFile = File(...)):
     """ + f"\n{raw_text[:12000]}" # limit to avoid token overload
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    #Send to OpenAI for structured extraction
+
+    # Send to OpenAI for structured extraction
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",  # you can change to gpt-4.1 or gpt-4o
