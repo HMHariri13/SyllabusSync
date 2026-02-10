@@ -265,7 +265,7 @@
         if (!file) return;
 
         const formData = new FormData();
-        formData.append("file", file); // MUST be "file"
+        formData.append("file", file); // MUST be FILE
 
         submitBtn.textContent = "Uploading...";
         submitBtn.disabled = true;
