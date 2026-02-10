@@ -20,34 +20,6 @@ from fastapi.middleware.cors import CORSMiddleware #for handling frontend and ba
 
 load_dotenv()
 
-#Temporary in-memory store (replace with DB later)
-CALENDAR_EVENTS = []
-
-@app.post("/calendar/import")
-async def import_events(structured_data: dict):
-    """
-    Accepts structured syllabus JSON and converts tasks into calendar events
-    """
-    events = []
-
-    for task in structured_data.get("tasks", []):
-        if task.get("dueAt"):
-            events.append({
-                "title": task["title"],
-                "type": task["type"],
-                "start": task["dueAt"],
-                "description": task.get("description"),
-            })
-
-    CALENDAR_EVENTS.extend(events)
-    return {"added": len(events)}
-
-
-@app.get("/calendar/events")
-async def get_calendar_events():
-    return CALENDAR_EVENTS
-#----------------------------------------------------------------------------
-
 app = FastAPI(
     title="AI Student Advisor - Middle Tier",
     description="Handles PDF uploads, LLM processing, and data management. \n" \
@@ -219,3 +191,31 @@ def get_syllabus_entry(syllabus_id: str):
 
     doc["_id"] = str(doc["_id"])
     return Syllabus(**doc)
+
+#Temporary in-memory store (replace with DB later)
+CALENDAR_EVENTS = []
+
+@app.post("/calendar/import")
+async def import_events(structured_data: dict):
+    """
+    Accepts structured syllabus JSON and converts tasks into calendar events
+    """
+    events = []
+
+    for task in structured_data.get("tasks", []):
+        if task.get("dueAt"):
+            events.append({
+                "title": task["title"],
+                "type": task["type"],
+                "start": task["dueAt"],
+                "description": task.get("description"),
+            })
+
+    CALENDAR_EVENTS.extend(events)
+    return {"added": len(events)}
+
+
+@app.get("/calendar/events")
+async def get_calendar_events():
+    return CALENDAR_EVENTS
+#----------------------------------------------------------------------------
