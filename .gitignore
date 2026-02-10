@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 #python middle tier api venv
 */.venv
+
+SyllabusSync/
+backend - api/
