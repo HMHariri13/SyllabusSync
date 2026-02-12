@@ -8,8 +8,8 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
-from database import syllabi_collection
-from models import SyllabusCreate, Syllabus
+from .database import syllabi_collection
+from .models import SyllabusCreate, Syllabus
 from datetime import datetime
 from bson import ObjectId
 from dotenv import load_dotenv
@@ -190,6 +190,7 @@ def get_syllabus_entry(syllabus_id: str):
         raise HTTPException(status_code=404, detail="Syllabus not found")
 
     doc["_id"] = str(doc["_id"])
+    doc.pop("_id", None)
     return Syllabus(**doc)
 
 #Temporary in-memory store (replace with DB later)
