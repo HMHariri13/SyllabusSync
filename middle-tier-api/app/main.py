@@ -8,8 +8,8 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
-from .database import syllabi_collection
-from .models import SyllabusCreate, Syllabus
+from database import syllabi_collection
+from models import SyllabusCreate, Syllabus
 from datetime import datetime
 from bson import ObjectId
 from dotenv import load_dotenv
