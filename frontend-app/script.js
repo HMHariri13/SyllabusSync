@@ -111,8 +111,20 @@ window.addEventListener("DOMContentLoaded", () => {
       submitBtn.disabled = true;
 
       try {
-        // Attempt to send to your backend (uncomment when ready)
-        // await fetch("http://127.0.0.1:8000/upload-syllabus/", { method: "POST", body: formData });
+            const response = await fetch(
+                "http://127.0.0.1:8000/upload-syllabus/",
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Upload failed");
+            }
+
+            const data = await response.json();
+            console.log("Backend response:", data);
 
         // Simulate delay
         await new Promise((r) => setTimeout(r, 1000));
