@@ -8,8 +8,8 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
-from database import syllabi_collection
-from models import SyllabusCreate, Syllabus
+from .database import syllabi_collection
+from .models import SyllabusCreate, Syllabus
 from datetime import datetime
 from bson import ObjectId
 from dotenv import load_dotenv
@@ -101,7 +101,7 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"File processing error: {e}")
     
 
-      #Build prompt for OpenAI
+    #Build prompt for OpenAI
     prompt = """
     You are a helpful assistant that extracts academic deadlines from a syllabus.
     The syllabus text is below.
@@ -134,6 +134,7 @@ async def create_upload_file(file: UploadFile = File(...)):
     Syllabus text:
     """ + f"\n{raw_text[:12000]}" # limit to avoid token overload
 
+    # Call OpenAI
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     # Send to OpenAI for structured extraction
@@ -149,13 +150,34 @@ async def create_upload_file(file: UploadFile = File(...)):
         )
         result = response.choices[0].message.content or ""
         structured_data = clean_llm_json_response(result)
-        return structured_data
+
     except Exception as e:
         return JSONResponse(
             {"error": f"OpenAI API request failed: {e}"},
             status_code=500
         )
-        #structured_data = clean_llm_json_response(result)
+
+    # Insert into Mongo
+    uploaded_at = datetime.now(timezone.utc)
+
+    doc = {
+        "filename": file.filename,
+        "contentType": file.content_type,
+        "rawText": raw_text,
+        "structured": structured_data,
+        "uploadedAt": uploaded_at,
+    }
+
+    insert_result = syllabi_collection.insert_one(doc)
+
+    # Return inserted ID
+    return {
+        "id": str(insert_result.inserted_id),
+        "filename": file.filename,
+        "uploadedAt": uploaded_at.isoformat(),
+        "structured": structured_data,
+    }
+     #structured_data = clean_llm_json_response(result)
     #Return structured JSON
     #return JSONResponse({"structured_data": result})
     #return structured_data
