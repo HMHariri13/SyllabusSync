@@ -1,71 +1,132 @@
-// --- 1. View Toggle Logic ---
-const toggleBtn = document.getElementById("viewToggleBtn");
-const weekView = document.getElementById("weekView");
-const monthView = document.getElementById("monthView");
+// Shared JS for BOTH pages (dashboard + upload)
+// Safe to include on every page because it checks for elements before wiring events.
 
-let isMonthView = false;
+window.addEventListener("DOMContentLoaded", () => {
+  // =========================
+  // DASHBOARD: View Toggle
+  // =========================
+  const toggleBtn = document.getElementById("viewToggleBtn");
+  const weekView = document.getElementById("weekView");
+  const monthView = document.getElementById("monthView");
 
-toggleBtn.addEventListener("click", () => {
-  isMonthView = !isMonthView;
+  if (toggleBtn && weekView && monthView) {
+    let isMonthView = false;
 
-  if (isMonthView) {
-    weekView.style.display = "none";
-    monthView.style.display = "block";
-    toggleBtn.innerText = "View Week";
-  } else {
-    weekView.style.display = "flex";
-    monthView.style.display = "none";
-    toggleBtn.innerText = "View Month";
+    toggleBtn.addEventListener("click", () => {
+      isMonthView = !isMonthView;
+
+      if (isMonthView) {
+        weekView.style.display = "none";
+        monthView.style.display = "block";
+        toggleBtn.innerText = "View Week";
+      } else {
+        weekView.style.display = "flex";
+        monthView.style.display = "none";
+        toggleBtn.innerText = "View Month";
+      }
+    });
   }
-});
 
-// --- 2. Interaction Logic ---
-// Click interaction for Week Capsules
-const days = document.querySelectorAll(".day-capsule");
-days.forEach((day) => {
-  day.addEventListener("click", () => {
-    days.forEach((d) => d.classList.remove("active"));
-    day.classList.add("active");
-  });
-});
+  // =========================
+  // DASHBOARD: Day selection
+  // =========================
+  const days = document.querySelectorAll(".day-capsule");
+  if (days.length) {
+    days.forEach((day) => {
+      day.addEventListener("click", () => {
+        days.forEach((d) => d.classList.remove("active"));
+        day.classList.add("active");
+      });
+    });
+  }
 
-// Click interaction for Month Days
-const monthDays = document.querySelectorAll(".month-day:not(.other-month)");
-monthDays.forEach((day) => {
-  day.addEventListener("click", () => {
-    document.querySelectorAll(".month-day").forEach((d) => d.classList.remove("active"));
-    day.classList.add("active");
-  });
-});
+  const monthDays = document.querySelectorAll(".month-day:not(.other-month)");
+  if (monthDays.length) {
+    monthDays.forEach((day) => {
+      day.addEventListener("click", () => {
+        document.querySelectorAll(".month-day").forEach((d) => d.classList.remove("active"));
+        day.classList.add("active");
+      });
+    });
+  }
 
-// --- 3. CHECK FOR NEW DATA (The Connection Logic) ---
-// Simulates fetching data from your backend
-window.addEventListener("load", () => {
-  if (localStorage.getItem("syllabusUploaded") === "true") {
-    const container = document.getElementById("schedule-list");
-    const count = document.getElementById("class-count");
+  // =========================================
+  // DASHBOARD: Simulated "new upload" insert
+  // =========================================
+  const scheduleList = document.getElementById("schedule-list");
+  const classCount = document.getElementById("class-count");
 
-    // Update Count
-    count.innerText = "3 Classes";
+  if (scheduleList && classCount) {
+    if (localStorage.getItem("syllabusUploaded") === "true") {
+      classCount.innerText = "3 Classes";
 
-    // Add New Event Card HTML
-    const newEventHTML = `
-      <div class="timeline-item">
-        <div class="time-col">04:30 PM</div>
-        <div class="event-card new-event">
-          <div class="event-title">Intro to Biology (New)</div>
-          <div class="event-meta">
-            <span><i class="fa-regular fa-clock"></i> 1h 00m</span>
-            <span><i class="fa-solid fa-location-dot"></i> Room 101</span>
+      const newEventHTML = `
+        <div class="timeline-item">
+          <div class="time-col">04:30 PM</div>
+          <div class="event-card new-event">
+            <div class="event-title">Intro to Biology (New)</div>
+            <div class="event-meta">
+              <span><i class="fa-regular fa-clock"></i> 1h 00m</span>
+              <span><i class="fa-solid fa-location-dot"></i> Room 101</span>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
 
-    // Append it (Simulation)
-    container.insertAdjacentHTML("beforeend", newEventHTML);
+      scheduleList.insertAdjacentHTML("beforeend", newEventHTML);
 
-    // Optional: Clear flag so it doesn't keep adding it on refresh
-    // localStorage.removeItem('syllabusUploaded');
+      // Optional: clear the flag so it doesn't keep adding on refresh
+      // localStorage.removeItem("syllabusUploaded");
+    }
+  }
+
+  // =========================
+  // UPLOAD: File selection UI
+  // =========================
+  const fileInput = document.getElementById("file-input");
+  const filePreview = document.getElementById("file-preview");
+  const fileName = document.getElementById("file-name");
+  const submitBtn = document.getElementById("submit-btn");
+
+  if (fileInput && filePreview && fileName && submitBtn) {
+    fileInput.addEventListener("change", function () {
+      if (this.files && this.files[0]) {
+        fileName.textContent = this.files[0].name;
+        filePreview.style.display = "flex";
+        submitBtn.classList.add("active");
+      }
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      submitBtn.textContent = "Uploading...";
+      submitBtn.disabled = true;
+
+      try {
+        // Attempt to send to your backend (uncomment when ready)
+        // await fetch("http://127.0.0.1:8000/upload-syllabus/", { method: "POST", body: formData });
+
+        // Simulate delay
+        await new Promise((r) => setTimeout(r, 1000));
+
+        // Flag for dashboard to show new event
+        localStorage.setItem("syllabusUploaded", "true");
+
+        alert("Syllabus processed! Redirecting...");
+        window.location.href = "mainScreen.html";
+      } catch (error) {
+        console.error("Upload error (Simulation fallback active)", error);
+        localStorage.setItem("syllabusUploaded", "true");
+        window.location.href = "mainScreen.html";
+      } finally {
+        submitBtn.textContent = "Sync with Calendar";
+        submitBtn.disabled = false;
+      }
+    });
   }
 });
