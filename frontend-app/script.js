@@ -80,6 +80,9 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+
+  
+
   // =========================
   // UPLOAD: File selection UI
   // =========================
@@ -127,6 +130,9 @@ window.addEventListener("DOMContentLoaded", () => {
         submitBtn.textContent = "Sync with Calendar";
         submitBtn.disabled = false;
       }
+
+      
     });
   }
 });
+

@@ -603,3 +603,48 @@ body.upload-page {
   color: #28a745;
   margin-left: 10px;
 }
+
+/* [Existing CSS remains the same...] */
+
+/* =========================================
+   8. TRANSITION SYSTEM & NEW BUTTONS
+   ========================================= */
+
+/* Smooth Page Entry Animation */
+body {
+    animation: slideUpFade 0.4s ease-out;
+}
+
+@keyframes slideUpFade {
+    from { 
+        opacity: 0; 
+        transform: translateY(15px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* Secondary Button (Cancel) */
+.secondary-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 15px;
+    background-color: #e9ecef; /* Light gray */
+    color: #555;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none; /* For using <a> as button */
+    margin-top: 12px;      /* Space below the Sync button */
+    transition: background-color 0.2s;
+}
+
+.secondary-btn:hover {
+    background-color: #dde2e6;
+    color: #333;
+}
