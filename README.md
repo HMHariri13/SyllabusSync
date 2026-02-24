@@ -1,2 +1,2 @@
 # SyllabusSync
-This application extracts course data from PDFs, predicts student grades, and organizes all academic and career deadlines.
+SyllabusSync is an AI-based platform that automatically extracts, organizes, and tracks everything from a student’s course syllabi into one smart dashboard - helping them stay on top of deadlines, assignments, and progress.
