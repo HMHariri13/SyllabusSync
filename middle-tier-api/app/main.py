@@ -10,7 +10,7 @@ from openai import OpenAI
 import os
 from database import syllabi_collection
 from models import SyllabusCreate, Syllabus
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 from dotenv import load_dotenv
 import json
@@ -83,7 +83,7 @@ async def create_upload_file(file: UploadFile = File(...)):
         if file.content_type == "application/pdf":
             pdf_reader = PyPDF2.PdfReader(io.BytesIO(contents))
             for page in pdf_reader.pages:
-                raw_text += page.extract_text()
+                raw_text += page.extract_text() or ""
         elif file.filename and file.filename.endswith(".docx"):
             doc = Document(io.BytesIO(contents))
             raw_text = "\n".join([p.text for p in doc.paragraphs])
@@ -152,10 +152,15 @@ async def create_upload_file(file: UploadFile = File(...)):
         structured_data = clean_llm_json_response(result)
 
     except Exception as e:
-        return JSONResponse(
+        '''return JSONResponse(
             {"error": f"OpenAI API request failed: {e}"},
             status_code=500
-        )
+        ) replace it by the structure of data below.'''
+        structured_data = {
+            "error": f"OpenAI API request failed: {e}",
+            "tasks": [],
+            "topics": []
+        }
 
     # Insert into Mongo
     uploaded_at = datetime.now(timezone.utc)
@@ -168,7 +173,10 @@ async def create_upload_file(file: UploadFile = File(...)):
         "uploadedAt": uploaded_at,
     }
 
-    insert_result = syllabi_collection.insert_one(doc)
+    try:
+        insert_result = syllabi_collection.insert_one(doc)
+    except Exception as e:
+        raise HTTPException(status_code = 500, detail=f"MOngodB INSERT FAILED:{e}")
 
     # Return inserted ID
     return {
