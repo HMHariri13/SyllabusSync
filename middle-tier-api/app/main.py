@@ -8,15 +8,9 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
-<<<<<<< HEAD
-from database import syllabi_collection
-from models import SyllabusCreate, Syllabus
-from datetime import datetime, timezone
-=======
 from .database import syllabi_collection, tasks_collection
 from .models import SyllabusCreate, Syllabus, ManualTaskCreate, ManualTaskUpdate
-from datetime import datetime
->>>>>>> 44ba9a1 ( Manual task insert & update (when syllabus doesn't list all assignments))
+from datetime import datetime, timezone
 from bson import ObjectId
 from dotenv import load_dotenv
 import json
