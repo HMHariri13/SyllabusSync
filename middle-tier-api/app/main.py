@@ -8,9 +8,15 @@ from fastapi.responses import JSONResponse
 import pdfplumber
 from openai import OpenAI
 import os
+<<<<<<< HEAD
 from database import syllabi_collection
 from models import SyllabusCreate, Syllabus
 from datetime import datetime, timezone
+=======
+from .database import syllabi_collection, tasks_collection
+from .models import SyllabusCreate, Syllabus, ManualTaskCreate, ManualTaskUpdate
+from datetime import datetime
+>>>>>>> 44ba9a1 ( Manual task insert & update (when syllabus doesn't list all assignments))
 from bson import ObjectId
 from dotenv import load_dotenv
 import json
@@ -249,4 +255,168 @@ async def import_events(structured_data: dict):
 @app.get("/calendar/events")
 async def get_calendar_events():
     return CALENDAR_EVENTS
-#----------------------------------------------------------------------------
+    
+@app.post("/syllabi/{syllabus_id}/tasks")
+async def save_tasks_for_syllabus(syllabus_id: str, structured_data: dict):
+    """
+    Persist extracted tasks for a given syllabus into MongoDB.
+
+    - `syllabus_id` should be the ID returned from POST /syllabi.
+    - `structured_data` is the JSON returned by /upload-syllabus/ (or the LLM),
+      containing a `tasks` array.
+    """
+    try:
+        oid = ObjectId(syllabus_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid syllabus id format")
+
+    syllabus_doc = syllabi_collection.find_one({"_id": oid})
+    if not syllabus_doc:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+
+    tasks = structured_data.get("tasks", [])
+    if not tasks:
+        return {"inserted": 0}
+
+    docs_to_insert = []
+    for task in tasks:
+        docs_to_insert.append(
+            {
+                "syllabusId": syllabus_id,
+                "type": task.get("type"),
+                "title": task.get("title"),
+                "dueAt": task.get("dueAt"),
+                "window": task.get("window"),
+                "points": task.get("points"),
+                "weightPct": task.get("weightPct"),
+                "description": task.get("description"),
+                "sourceText": task.get("sourceText"),
+            }
+        )
+
+    if not docs_to_insert:
+        return {"inserted": 0}
+
+    result = tasks_collection.insert_many(docs_to_insert)
+    return {"inserted": len(result.inserted_ids)}
+
+
+# -----------------------------
+# Manual task insert & update (when syllabus doesn't list all assignments)
+# -----------------------------
+
+@app.get("/syllabi/{syllabus_id}/tasks")
+async def get_tasks_for_syllabus(syllabus_id: str):
+    """
+    List all tasks (assignments, due dates, etc.) for a syllabus.
+    Use this to show what's stored and to support edit/update flows.
+    """
+    try:
+        oid = ObjectId(syllabus_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid syllabus id format")
+
+    syllabus_doc = syllabi_collection.find_one({"_id": oid})
+    if not syllabus_doc:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+
+    cursor = tasks_collection.find({"syllabusId": syllabus_id}).sort("dueAt", 1)
+    tasks = []
+    for doc in cursor:
+        doc["id"] = str(doc.pop("_id"))
+        tasks.append(doc)
+    return {"tasks": tasks}
+
+
+@app.post("/syllabi/{syllabus_id}/tasks/manual")
+async def add_manual_task(syllabus_id: str, task: ManualTaskCreate):
+    """
+    Manually add a single task (assignment, exam, etc.) for a syllabus
+    when the syllabus doesn't include it or the user wants to add more.
+    """
+    try:
+        oid = ObjectId(syllabus_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid syllabus id format")
+
+    syllabus_doc = syllabi_collection.find_one({"_id": oid})
+    if not syllabus_doc:
+        raise HTTPException(status_code=404, detail="Syllabus not found")
+
+    doc = {
+        "syllabusId": syllabus_id,
+        "type": task.type,
+        "title": task.title,
+        "dueAt": task.dueAt,
+        "window": task.window.model_dump() if task.window else None,
+        "points": task.points,
+        "weightPct": task.weightPct,
+        "description": task.description,
+        "sourceText": task.sourceText,
+    }
+    result = tasks_collection.insert_one(doc)
+    return {"id": str(result.inserted_id), "inserted": 1}
+
+
+@app.put("/tasks/{task_id}")
+async def update_task(task_id: str, task: ManualTaskCreate):
+    """
+    Full update of an existing task. Send all fields you want to keep.
+    """
+    try:
+        oid = ObjectId(task_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid task id format")
+
+    existing = tasks_collection.find_one({"_id": oid})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    update_doc = {
+        "type": task.type,
+        "title": task.title,
+        "dueAt": task.dueAt,
+        "window": task.window.model_dump() if task.window else None,
+        "points": task.points,
+        "weightPct": task.weightPct,
+        "description": task.description,
+        "sourceText": task.sourceText,
+    }
+    tasks_collection.update_one({"_id": oid}, {"$set": update_doc})
+    return {"id": task_id, "updated": 1}
+
+
+@app.patch("/tasks/{task_id}")
+async def patch_task(task_id: str, task: ManualTaskUpdate):
+    """
+    Partial update of an existing task. Only send fields you want to change.
+    """
+    try:
+        oid = ObjectId(task_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid task id format")
+
+    existing = tasks_collection.find_one({"_id": oid})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    update_doc = task.model_dump(exclude_unset=True)
+    # Pydantic serializes nested TaskWindow to dict; ensure no BaseModel in payload
+    if "window" in update_doc and hasattr(update_doc["window"], "model_dump"):
+        update_doc["window"] = update_doc["window"].model_dump()
+    tasks_collection.update_one({"_id": oid}, {"$set": update_doc})
+    return {"id": task_id, "updated": 1}
+
+
+@app.delete("/tasks/{task_id}")
+async def delete_task(task_id: str):
+    """Remove a task (e.g. one that was added manually by mistake)."""
+    try:
+        oid = ObjectId(task_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid task id format")
+
+    result = tasks_collection.delete_one({"_id": oid})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"id": task_id, "deleted": 1}
